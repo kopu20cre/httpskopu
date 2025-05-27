@@ -26,7 +26,8 @@
       transform: translateX(-50%);
       width: 50px;
       height: 50px;
-      background: red;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/4807/4807706.png');
+      background-size: cover;
     }
 
     .dusman {
@@ -34,7 +35,15 @@
       top: 0;
       width: 50px;
       height: 50px;
-      background: green;
+      background-image: url('https://cdn-icons-png.flaticon.com/512/6883/6883025.png');
+      background-size: cover;
+    }
+
+    .mermi {
+      position: absolute;
+      width: 5px;
+      height: 20px;
+      background: yellow;
     }
 
     #can {
@@ -77,10 +86,32 @@
       oyuncuX -= 20;
     } else if (e.key === "ArrowRight") {
       oyuncuX += 20;
+    } else if (e.key === " ") {
+      atesEt();
     }
     oyuncuX = Math.max(0, Math.min(window.innerWidth - 50, oyuncuX));
     oyuncu.style.left = oyuncuX + "px";
   });
+
+  // Ateş etme
+  function atesEt() {
+    const mermi = document.createElement("div");
+    mermi.classList.add("mermi");
+    mermi.style.left = (oyuncuX + 22) + "px";
+    mermi.style.bottom = "70px";
+    oyunAlani.appendChild(mermi);
+
+    let y = 70;
+    const interval = setInterval(() => {
+      y += 10;
+      mermi.style.bottom = y + "px";
+      if (y > window.innerHeight) {
+        mermi.remove();
+        clearInterval(interval);
+      }
+    }, 30);
+    mermiler.push(mermi);
+  }
 
   // Düşman oluştur
   function dusmanOlustur() {
@@ -92,7 +123,7 @@
   }
 
   // Çarpışma kontrolü
-  function carpisti(mi, a, b) {
+  function carpisti(a, b) {
     const rect1 = a.getBoundingClientRect();
     const rect2 = b.getBoundingClientRect();
     return !(rect1.right < rect2.left ||
@@ -101,16 +132,15 @@
              rect1.top > rect2.bottom);
   }
 
+  const dusmanlar = [];
+  const mermiler = [];
+
   // Oyun döngüsü
   function oyunBaslat() {
-    const dusmanlar = [];
-
     setInterval(() => {
       if (can <= 0) return;
-
       const dusman = dusmanOlustur();
       dusmanlar.push({ element: dusman, y: 0 });
-
     }, 1000);
 
     function animasyon() {
@@ -123,7 +153,7 @@
         d.y += 4;
         d.element.style.top = d.y + "px";
 
-        if (carpisti(true, d.element, oyuncu)) {
+        if (carpisti(d.element, oyuncu)) {
           oyunAlani.removeChild(d.element);
           dusmanlar.splice(i, 1);
           can--;
@@ -132,6 +162,20 @@
           oyunAlani.removeChild(d.element);
           dusmanlar.splice(i, 1);
         }
+      });
+
+      mermiler.forEach((m, j) => {
+        const top = parseInt(m.style.bottom);
+        m.style.bottom = top + 10 + "px";
+
+        dusmanlar.forEach((d, i) => {
+          if (carpisti(m, d.element)) {
+            oyunAlani.removeChild(m);
+            oyunAlani.removeChild(d.element);
+            mermiler.splice(j, 1);
+            dusmanlar.splice(i, 1);
+          }
+        });
       });
 
       requestAnimationFrame(animasyon);
