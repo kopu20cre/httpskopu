@@ -1,32 +1,147 @@
-<div style="text-align:center; font-family: Arial; max-width: 300px; margin:auto;">
-  <h2>Tahmin Oyunu</h2>
-  <p>1 ile 100 arasında bir sayı tuttum, tahmin et!</p>
-  <input type="number" id="guess" placeholder="Tahminini yaz" min="1" max="100">
-  <button onclick="checkGuess()">Tahmin Et</button>
-  <p id="feedback"></p>
-  <p id="attempts"></p>
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Uçak Savaşı Oyunu</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      color: white;
+      font-family: Arial;
+    }
+
+    #oyunAlani {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      background-color: #111;
+    }
+
+    #oyuncu {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 50px;
+      height: 50px;
+      background: red;
+    }
+
+    .dusman {
+      position: absolute;
+      top: 0;
+      width: 50px;
+      height: 50px;
+      background: green;
+    }
+
+    #can {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      font-size: 20px;
+    }
+
+    #mesaj {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 36px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+<div id="oyunAlani">
+  <div id="oyuncu"></div>
+  <div id="can">Can: 10</div>
+  <div id="mesaj">Oyun Bitti!</div>
 </div>
 
 <script>
-let numberToGuess = Math.floor(Math.random() * 100) + 1;
-let attempts = 0;
+  const oyunAlani = document.getElementById("oyunAlani");
+  const oyuncu = document.getElementById("oyuncu");
+  const mesaj = document.getElementById("mesaj");
+  const canMetni = document.getElementById("can");
 
-function checkGuess() {
-  const guessInput = document.getElementById('guess');
-  const feedback = document.getElementById('feedback');
-  const attemptsP = document.getElementById('attempts');
-  let guess = Number(guessInput.value);
-  attempts++;
+  let can = 10;
+  let oyuncuX = window.innerWidth / 2 - 25;
 
-  if (guess === numberToGuess) {
-    feedback.textContent = `Tebrikler! Doğru tahmin: ${numberToGuess}`;
-    attemptsP.textContent = `Toplam tahmin sayısı: ${attempts}`;
-  } else if (guess > numberToGuess) {
-    feedback.textContent = "Daha küçük bir sayı dene.";
-  } else if (guess < numberToGuess) {
-    feedback.textContent = "Daha büyük bir sayı dene.";
+  // Oyuncuyu hareket ettir
+  document.addEventListener("keydown", e => {
+    if (e.key === "ArrowLeft") {
+      oyuncuX -= 20;
+    } else if (e.key === "ArrowRight") {
+      oyuncuX += 20;
+    }
+    oyuncuX = Math.max(0, Math.min(window.innerWidth - 50, oyuncuX));
+    oyuncu.style.left = oyuncuX + "px";
+  });
+
+  // Düşman oluştur
+  function dusmanOlustur() {
+    const dusman = document.createElement("div");
+    dusman.classList.add("dusman");
+    dusman.style.left = Math.random() * (window.innerWidth - 50) + "px";
+    oyunAlani.appendChild(dusman);
+    return dusman;
   }
-  guessInput.value = '';
-  guessInput.focus();
-}
+
+  // Çarpışma kontrolü
+  function carpisti(mi, a, b) {
+    const rect1 = a.getBoundingClientRect();
+    const rect2 = b.getBoundingClientRect();
+    return !(rect1.right < rect2.left ||
+             rect1.left > rect2.right ||
+             rect1.bottom < rect2.top ||
+             rect1.top > rect2.bottom);
+  }
+
+  // Oyun döngüsü
+  function oyunBaslat() {
+    const dusmanlar = [];
+
+    setInterval(() => {
+      if (can <= 0) return;
+
+      const dusman = dusmanOlustur();
+      dusmanlar.push({ element: dusman, y: 0 });
+
+    }, 1000);
+
+    function animasyon() {
+      if (can <= 0) {
+        mesaj.style.display = "block";
+        return;
+      }
+
+      dusmanlar.forEach((d, i) => {
+        d.y += 4;
+        d.element.style.top = d.y + "px";
+
+        if (carpisti(true, d.element, oyuncu)) {
+          oyunAlani.removeChild(d.element);
+          dusmanlar.splice(i, 1);
+          can--;
+          canMetni.textContent = "Can: " + can;
+        } else if (d.y > window.innerHeight) {
+          oyunAlani.removeChild(d.element);
+          dusmanlar.splice(i, 1);
+        }
+      });
+
+      requestAnimationFrame(animasyon);
+    }
+
+    animasyon();
+  }
+
+  oyunBaslat();
 </script>
+
+</body>
+</html>
