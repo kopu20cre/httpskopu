@@ -21,7 +21,7 @@
 
     #oyuncu {
       position: absolute;
-      bottom: 20px;
+      bottom: 100px;
       left: 50%;
       transform: translateX(-50%);
       width: 50px;
@@ -79,6 +79,7 @@
 
   let can = 10;
   let oyuncuX = window.innerWidth / 2 - 25;
+  let oyuncuY = 100;
 
   // Oyuncuyu hareket ettir
   document.addEventListener("keydown", e => {
@@ -86,11 +87,17 @@
       oyuncuX -= 20;
     } else if (e.key === "ArrowRight") {
       oyuncuX += 20;
+    } else if (e.key === "ArrowUp") {
+      oyuncuY += 20;
+    } else if (e.key === "ArrowDown") {
+      oyuncuY -= 20;
     } else if (e.key === " ") {
       atesEt();
     }
     oyuncuX = Math.max(0, Math.min(window.innerWidth - 50, oyuncuX));
+    oyuncuY = Math.max(0, Math.min(window.innerHeight - 50, oyuncuY));
     oyuncu.style.left = oyuncuX + "px";
+    oyuncu.style.bottom = oyuncuY + "px";
   });
 
   // Ateş etme
@@ -98,10 +105,10 @@
     const mermi = document.createElement("div");
     mermi.classList.add("mermi");
     mermi.style.left = (oyuncuX + 22) + "px";
-    mermi.style.bottom = "70px";
+    mermi.style.bottom = (oyuncuY + 50) + "px";
     oyunAlani.appendChild(mermi);
 
-    let y = 70;
+    let y = oyuncuY + 50;
     const interval = setInterval(() => {
       y += 10;
       mermi.style.bottom = y + "px";
